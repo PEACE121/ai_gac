@@ -63,4 +63,21 @@ public class VI
 		return domain;
 	}
 	
+	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString()
+	{
+		String out = "";
+		for (IDomainAttribute dom : domain)
+		{
+			out += dom.getNumericalRepresentation() + ",";
+		}
+		return "VI [" + varInCNET.getName() + "," + out + "]";
+	}
+	
 }

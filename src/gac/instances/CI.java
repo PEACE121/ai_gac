@@ -4,6 +4,7 @@ import gac.IDomainAttribute;
 import gac.constraintNetwork.Constraint;
 import gac.constraintNetwork.Variable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,16 +14,16 @@ import java.util.Map;
 public class CI
 {
 	private final Constraint	consInCNET;
-	private final List<VI>		variables;
+	private final List<VI>		vis;
 	
 	
 	public CI(CI oldCI, Map<Variable, VI> newVIs)
 	{
 		this.consInCNET = oldCI.consInCNET;
-		this.variables = new LinkedList<VI>();
+		this.vis = new LinkedList<VI>();
 		for (VI oldVI : oldCI.getVIs())
 		{
-			variables.add(newVIs.get(oldVI.getVarInCNET()));
+			vis.add(newVIs.get(oldVI.getVarInCNET()));
 		}
 	}
 	
@@ -35,66 +36,112 @@ public class CI
 	{
 		super();
 		this.consInCNET = consInCNET;
-		this.variables = variables;
+		this.vis = variables;
 	}
 	
 	
 	public boolean revise(VI x)
 	{
-		List<IterationStatus> status = new LinkedList<IterationStatus>();
-		for (VI notX : variables)
+		// System.out.println("Eval " + consInCNET.getCanonicalFormulation());
+		// List<IterationStatus> status = new LinkedList<IterationStatus>();
+		// for (VI notX : vis)
+		// {
+		// if (!notX.equals(x))
+		// {
+		// System.out.println(notX.toString());
+		// if (notX.getDomain().size() > 0)
+		// {
+		// status.add(new IterationStatus(notX, 0, notX.getDomain().size()));
+		// } else
+		// {
+		// return false;
+		// }
+		// }
+		// }
+		//
+		List<IDomainAttribute> toDeleteFromX = new LinkedList<IDomainAttribute>();
+		// for (IDomainAttribute dom : x.getDomain())
+		// {
+		// for (IterationStatus stat : status)
+		// {
+		// stat.setPos(0);
+		// }
+		// boolean delete = true;
+		// while (true)
+		// {
+		// Map<String, Integer> varAssign = new HashMap<String, Integer>();
+		// varAssign.put(x.getVarInCNET().getName(), dom.getNumericalRepresentation());
+		// boolean inc = false;
+		// for (IterationStatus stat : status)
+		// {
+		// varAssign.put(stat.getVi().getVarInCNET().getName(), stat.getVi().getDomain().get(stat.getPos())
+		// .getNumericalRepresentation());
+		// if (!inc && stat.getPos() + 1 != stat.getLength())
+		// {
+		// stat.setPos(stat.getPos() + 1);
+		// inc = true;
+		// } else if (stat.getPos() + 1 != stat.getLength())
+		// {
+		// stat.setPos(0);
+		// }
+		// }
+		// for (Entry<String, Integer> set : varAssign.entrySet())
+		// {
+		// // System.out.println(set.getKey() + ": " + set.getValue());
+		// }
+		//
+		// if (consInCNET.eval(varAssign))
+		// {
+		// delete = false;
+		// break;
+		// }
+		// if (!inc)
+		// {
+		// break;
+		// }
+		// }
+		// if (delete)
+		// {
+		// toDeleteFromX.add(dom);
+		// }
+		// }
+		// x.getDomain().removeAll(toDeleteFromX);
+		// if (x.getDomain().size() == 0)
+		// {
+		// System.out.println("Stop");
+		// }
+		// return !(toDeleteFromX.size() == 0);
+		List<VI> neighbours = new ArrayList<VI>();
+		for (VI vi : vis)
 		{
-			if (!notX.equals(x))
+			if (!vi.equals(x))
 			{
-				if (notX.getDomain().size() > 0)
-				{
-					status.add(new IterationStatus(notX, 0, notX.getDomain().size()));
-				} else
-				{
-					return false;
-				}
+				neighbours.add(vi);
 			}
 		}
-		
-		List<IDomainAttribute> toDeleteFromX = new LinkedList<IDomainAttribute>();
-		for (IDomainAttribute dom : x.getDomain())
+		int[][] allCombinations = createCombinations(x, neighbours);
+		nextDom: for (IDomainAttribute dom : x.getDomain())
 		{
-			for (IterationStatus stat : status)
-			{
-				stat.setPos(0);
-			}
-			boolean delete = true;
-			while (true)
+			for (int i = 0; i < allCombinations.length; i++)
 			{
 				Map<String, Integer> varAssign = new HashMap<String, Integer>();
 				varAssign.put(x.getVarInCNET().getName(), dom.getNumericalRepresentation());
-				boolean inc = false;
-				for (IterationStatus stat : status)
+				for (int j = 0; j < allCombinations[i].length; j++)
 				{
-					varAssign.put(stat.getVi().getVarInCNET().getName(), stat.getVi().getDomain().get(stat.getPos())
-							.getNumericalRepresentation());
-					if (!inc && stat.getPos() + 1 != stat.getLength())
-					{
-						stat.setPos(stat.getPos() + 1);
-						inc = true;
-					}
+					varAssign.put(neighbours.get(j).getVarInCNET().getName(), allCombinations[i][j]);
 				}
 				if (consInCNET.eval(varAssign))
 				{
-					delete = false;
-					break;
-				}
-				if (!inc)
-				{
-					break;
+					continue nextDom;
 				}
 			}
-			if (delete)
-			{
-				toDeleteFromX.add(dom);
-			}
+			toDeleteFromX.add(dom);
 		}
 		x.getDomain().removeAll(toDeleteFromX);
+		// if (x.getDomain().size() == 0)
+		// {
+		// System.out.println("Stop");
+		// }
 		return !(toDeleteFromX.size() == 0);
 	}
 	
@@ -106,7 +153,7 @@ public class CI
 	public boolean consistencyCheck()
 	{
 		Map<String, Integer> variableAssignments = new HashMap<String, Integer>();
-		for (VI vi : variables)
+		for (VI vi : vis)
 		{
 			variableAssignments.put(vi.getVarInCNET().getName(), vi.getDomain().get(0).getNumericalRepresentation());
 		}
@@ -128,7 +175,48 @@ public class CI
 	 */
 	public List<VI> getVIs()
 	{
-		return variables;
+		return vis;
 	}
+	
+	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString()
+	{
+		return "CI [vis=" + vis + ", cons=" + consInCNET + "]";
+	}
+	
+	
+	private static int[][] createCombinations(VI X, List<VI> neighbors)
+	{
+		int total_size = 1;
+		for (int i = 0; i < neighbors.size(); i++)
+		{
+			VI Y = neighbors.get(i);
+			total_size *= Y.getDomain().size();
+		}
+		
+		int[][] combinations = new int[total_size][neighbors.size()];
+		for (int c_i = 0; c_i < total_size; c_i++)
+		{
+			int y_i = 0;
+			int y_size = 1;
+			for (int i = 0; i < neighbors.size(); i++)
+			{
+				VI Y = neighbors.get(i);
+				y_size *= Y.getDomain().size();
+				int tmp = c_i / (total_size / y_size);
+				int y_index = tmp % Y.getDomain().size();
+				combinations[c_i][y_i] = Y.getDomain().get(y_index).getNumericalRepresentation();
+				y_i++;
+			}
+		}
+		return combinations;
+	}
+	
 	
 }

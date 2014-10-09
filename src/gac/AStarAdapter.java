@@ -33,7 +33,12 @@ public class AStarAdapter implements IAreaOfApplication
 		this.chooseNextComplex = next;
 		this.gacAlgorithm = new GACAlgorithm(constraints, vars);
 		this.gacStartState = gacAlgorithm.getState();
-		this.gacAlgorithm.domainFilteringLoop();
+	}
+	
+	
+	public void domainFilteringLoop()
+	{
+		gacAlgorithm.domainFilteringLoop();
 	}
 	
 	
@@ -233,6 +238,7 @@ public class AStarAdapter implements IAreaOfApplication
 	public void register(IGACObersvers obs)
 	{
 		observers.add(obs);
+		gacAlgorithm.register(obs);
 	}
 	
 	

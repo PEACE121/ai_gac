@@ -6,6 +6,7 @@ import gac.instances.CI;
 import gac.instances.TodoRevise;
 import gac.instances.VI;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -15,10 +16,12 @@ import java.util.Map;
 
 public class GACAlgorithm
 {
-	private final List<TodoRevise>	queue;
+	private final List<TodoRevise>		queue;
 	
 	
-	private GACState						state;
+	private GACState							state;
+	
+	private final List<IGACObersvers>	observers	= new ArrayList<IGACObersvers>();
 	
 	
 	/**
@@ -71,6 +74,7 @@ public class GACAlgorithm
 	{
 		while (!queue.isEmpty())
 		{
+			inform(state);
 			TodoRevise todoRevise = queue.get(0);
 			queue.remove(0);
 			boolean domainReduced = todoRevise.getCi().revise(todoRevise.getVi());
@@ -139,4 +143,17 @@ public class GACAlgorithm
 	}
 	
 	
+	public void register(IGACObersvers obs)
+	{
+		observers.add(obs);
+	}
+	
+	
+	public void inform(GACState x)
+	{
+		for (IGACObersvers obs : observers)
+		{
+			obs.update(x, false);
+		}
+	}
 }
