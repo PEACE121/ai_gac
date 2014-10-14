@@ -74,13 +74,13 @@ public class GACAlgorithm
 	{
 		while (!queue.isEmpty())
 		{
-			inform(state);
 			TodoRevise todoRevise = queue.get(0);
 			queue.remove(0);
 			boolean domainReduced = todoRevise.getCi().revise(todoRevise.getVi());
 			VI x = todoRevise.getVi();
 			if (domainReduced)
 			{
+				inform(state);
 				for (CI ci : state.getCis())
 				{
 					// if the constraint contains the focal variable x and ci does not equal to the just checked constraint

@@ -82,7 +82,13 @@ public class AStarAdapter implements IAreaOfApplication
 	@Override
 	public boolean isSolution(IState state)
 	{
-		return (checkState((GACState) state) == 1);
+		return (checkState((GACState) state) == 1) && isApplicationSolution((GACState) state);
+	}
+	
+	
+	public boolean isApplicationSolution(GACState state)
+	{
+		return true;
 	}
 	
 	
@@ -167,6 +173,10 @@ public class AStarAdapter implements IAreaOfApplication
 		}
 		
 		// for the selected variable, for each domain, add a successor which has only this single domain (assumption)
+		if (nextVariable == null)
+		{
+			return successors;
+		}
 		for (int j = 0; j < nextVariable.getDomain().size(); j++)
 		{
 			GACState newState = new GACState(gacState);
@@ -176,13 +186,23 @@ public class AStarAdapter implements IAreaOfApplication
 			newState.getVis().get(nextVariable.getVarInCNET()).setDomain(newDoms);
 			gacAlgorithm.rerun(newState, newState.getVis().get(nextVariable.getVarInCNET()));
 			// only add the state if it is solvable! ignore states with contradictions, that are dead ends
-			if (newState.isStillSolvable())
+			if (newState.isStillSolvable() && !isApplicationDeadEnd(newState))
 			{
 				successors.add(newState);
 			}
 			// inform(newState);
 		}
 		return successors;
+	}
+	
+	
+	/**
+	 * to overwrite
+	 * @return
+	 */
+	public boolean isApplicationDeadEnd(GACState state)
+	{
+		return true;
 	}
 	
 	
