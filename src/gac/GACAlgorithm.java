@@ -1,17 +1,12 @@
 package gac;
 
-import gac.constraintNetwork.Constraint;
-import gac.constraintNetwork.Variable;
 import gac.instances.CI;
 import gac.instances.TodoRevise;
 import gac.instances.VI;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 
 public class GACAlgorithm
@@ -29,44 +24,19 @@ public class GACAlgorithm
 	 * @param constraints
 	 * @param vars
 	 */
-	public GACAlgorithm(List<Constraint> constraints, List<Variable> vars)
+	public GACAlgorithm(GACState state)
 	{
+		this.state = state;
 		queue = new LinkedList<TodoRevise>();
 		
-		// Create cis and vis
-		Map<Variable, VI> vis = new HashMap<Variable, VI>();
-		for (Variable var : vars)
-		{
-			vis.put(var, new VI(var, var.getFullDomainCopy()));
-		}
-		List<CI> cis = new LinkedList<CI>();
-		for (Constraint constraint : constraints)
-		{
-			CI ci = new CI(constraint, filterVariables(vis, constraint.getVariables().values()));
-			cis.add(ci);
-		}
-		
-		state = new GACState(vis, cis);
-		
 		// add to queue
-		for (CI ci : cis)
+		for (CI ci : state.getCis())
 		{
 			for (VI vi : ci.getVIs())
 			{
 				queue.add(new TodoRevise(ci, vi));
 			}
 		}
-	}
-	
-	
-	private List<VI> filterVariables(Map<Variable, VI> vis, Collection<Variable> vars)
-	{
-		List<VI> filtered = new LinkedList<VI>();
-		for (Variable var : vars)
-		{
-			filtered.add(vis.get(var));
-		}
-		return filtered;
 	}
 	
 	
@@ -96,6 +66,11 @@ public class GACAlgorithm
 							}
 						}
 					}
+				}
+				if (x.getDomain().size() == 1)
+				{
+					state.setLastGuessed(x.getDomain().get(0));
+					state.setLastGuessedVar(x.getVarInCNET());
 				}
 			}
 		}

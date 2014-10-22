@@ -14,8 +14,11 @@ import astarframework.IState;
 
 public class GACState implements IState
 {
-	private final Map<Variable, VI>	vis;
-	private final List<CI>				cis;
+	private Map<Variable, VI>	vis;
+	private List<CI>				cis;
+	
+	private IDomainAttribute	lastGuessed		= null;
+	private Variable				lastGuessedVar	= null;
 	
 	
 	public GACState(GACState old)
@@ -101,6 +104,60 @@ public class GACState implements IState
 	public List<CI> getCis()
 	{
 		return cis;
+	}
+	
+	
+	/**
+	 * @return the lastGuessed
+	 */
+	public IDomainAttribute getLastGuessed()
+	{
+		return lastGuessed;
+	}
+	
+	
+	/**
+	 * @param lastGuessed the lastGuessed to set
+	 */
+	public void setLastGuessed(IDomainAttribute lastGuessed)
+	{
+		this.lastGuessed = lastGuessed;
+	}
+	
+	
+	/**
+	 * @return the lastGuessedVar
+	 */
+	public Variable getLastGuessedVar()
+	{
+		return lastGuessedVar;
+	}
+	
+	
+	/**
+	 * @param lastGuessedVar the lastGuessedVar to set
+	 */
+	public void setLastGuessedVar(Variable lastGuessedVar)
+	{
+		this.lastGuessedVar = lastGuessedVar;
+	}
+	
+	
+	/**
+	 * @param vis the vis to set
+	 */
+	public void setVis(Map<Variable, VI> vis)
+	{
+		this.vis = vis;
+	}
+	
+	
+	/**
+	 * @param cis the cis to set
+	 */
+	public void setCis(List<CI> cis)
+	{
+		this.cis = cis;
 	}
 	
 	

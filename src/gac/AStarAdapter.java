@@ -6,8 +6,11 @@ import gac.instances.CI;
 import gac.instances.VI;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import astarframework.IAreaOfApplication;
 import astarframework.IState;
@@ -15,13 +18,24 @@ import astarframework.IState;
 
 public class AStarAdapter implements IAreaOfApplication
 {
-	private final GACState					gacStartState;
+	private GACState							gacStartState;
 	
-	private final GACAlgorithm				gacAlgorithm;
+	private GACAlgorithm						gacAlgorithm;
 	
 	private final List<IGACObersvers>	observers			= new ArrayList<IGACObersvers>();
 	
-	private ENextVariable					chooseNextComplex	= ENextVariable.COMPLEX2;
+	protected ENextVariable					chooseNextComplex	= ENextVariable.COMPLEX2;
+	
+	private VI									lastFocal			= null;
+	
+	
+	/**
+	 * @return the lastFocal
+	 */
+	public VI getLastFocal()
+	{
+		return lastFocal;
+	}
 	
 	
 	/**
@@ -31,8 +45,37 @@ public class AStarAdapter implements IAreaOfApplication
 	{
 		super();
 		this.chooseNextComplex = next;
-		this.gacAlgorithm = new GACAlgorithm(constraints, vars);
+		
+		// Create cis and vis
+		Map<Variable, VI> vis = new HashMap<Variable, VI>();
+		for (Variable var : vars)
+		{
+			vis.put(var, new VI(var, var.getFullDomainCopy()));
+		}
+		List<CI> cis = new LinkedList<CI>();
+		for (Constraint constraint : constraints)
+		{
+			CI ci = new CI(constraint, filterVariables(vis, constraint.getVariables().values()));
+			cis.add(ci);
+		}
+		this.gacAlgorithm = new GACAlgorithm(new GACState(vis, cis));
 		this.gacStartState = gacAlgorithm.getState();
+	}
+	
+	
+	public AStarAdapter()
+	{
+	}
+	
+	
+	public static List<VI> filterVariables(Map<Variable, VI> vis, Collection<Variable> vars)
+	{
+		List<VI> filtered = new LinkedList<VI>();
+		for (Variable var : vars)
+		{
+			filtered.add(vis.get(var));
+		}
+		return filtered;
 	}
 	
 	
@@ -95,7 +138,7 @@ public class AStarAdapter implements IAreaOfApplication
 	@Override
 	public List<IState> generateAllSuccessors(IState state)
 	{
-		GACState gacState = new GACState((GACState) state);
+		GACState gacState = (GACState) state;
 		List<IState> successors = new LinkedList<IState>();
 		
 		int maxDegreeOfReduced = 0;
@@ -171,20 +214,31 @@ public class AStarAdapter implements IAreaOfApplication
 				}
 			}
 		}
-		
 		// for the selected variable, for each domain, add a successor which has only this single domain (assumption)
 		if (nextVariable == null)
 		{
 			return successors;
 		}
-		for (int j = 0; j < nextVariable.getDomain().size(); j++)
+		System.out.println(nextVariable.getVarInCNET().getName());
+		lastFocal = nextVariable;
+		
+		return generateSuccesorsOfVI(nextVariable, gacState);
+	}
+	
+	
+	protected List<IState> generateSuccesorsOfVI(VI vi, GACState gacState)
+	{
+		List<IState> successors = new LinkedList<IState>();
+		for (int j = 0; j < vi.getDomain().size(); j++)
 		{
 			GACState newState = new GACState(gacState);
-			IDomainAttribute newDom = newState.getVis().get(nextVariable.getVarInCNET()).getDomain().get(j);
+			IDomainAttribute newDom = newState.getVis().get(vi.getVarInCNET()).getDomain().get(j);
 			List<IDomainAttribute> newDoms = new LinkedList<IDomainAttribute>();
 			newDoms.add(newDom);
-			newState.getVis().get(nextVariable.getVarInCNET()).setDomain(newDoms);
-			gacAlgorithm.rerun(newState, newState.getVis().get(nextVariable.getVarInCNET()));
+			newState.getVis().get(vi.getVarInCNET()).setDomain(newDoms);
+			newState.setLastGuessed(newDom);
+			newState.setLastGuessedVar(vi.getVarInCNET());
+			gacAlgorithm.rerun(newState, newState.getVis().get(vi.getVarInCNET()));
 			// only add the state if it is solvable! ignore states with contradictions, that are dead ends
 			if (newState.isStillSolvable() && !isApplicationDeadEnd(newState))
 			{
@@ -202,7 +256,7 @@ public class AStarAdapter implements IAreaOfApplication
 	 */
 	public boolean isApplicationDeadEnd(GACState state)
 	{
-		return true;
+		return false;
 	}
 	
 	
@@ -269,4 +323,42 @@ public class AStarAdapter implements IAreaOfApplication
 			obs.update(x, false);
 		}
 	}
+	
+	
+	/**
+	 * @return the gacAlgorithm
+	 */
+	public GACAlgorithm getGacAlgorithm()
+	{
+		return gacAlgorithm;
+	}
+	
+	
+	/**
+	 * @param gacStartState the gacStartState to set
+	 */
+	public void setGacStartState(GACState gacStartState)
+	{
+		this.gacStartState = gacStartState;
+	}
+	
+	
+	/**
+	 * @param gacAlgorithm the gacAlgorithm to set
+	 */
+	public void setGacAlgorithm(GACAlgorithm gacAlgorithm)
+	{
+		this.gacAlgorithm = gacAlgorithm;
+	}
+	
+	
+	/**
+	 * @param chooseNextComplex the chooseNextComplex to set
+	 */
+	public void setChooseNextComplex(ENextVariable chooseNextComplex)
+	{
+		this.chooseNextComplex = chooseNextComplex;
+	}
+	
+	
 }

@@ -42,75 +42,7 @@ public class CI
 	
 	public boolean revise(VI x)
 	{
-		// System.out.println("Eval " + consInCNET.getCanonicalFormulation());
-		// List<IterationStatus> status = new LinkedList<IterationStatus>();
-		// for (VI notX : vis)
-		// {
-		// if (!notX.equals(x))
-		// {
-		// System.out.println(notX.toString());
-		// if (notX.getDomain().size() > 0)
-		// {
-		// status.add(new IterationStatus(notX, 0, notX.getDomain().size()));
-		// } else
-		// {
-		// return false;
-		// }
-		// }
-		// }
-		//
 		List<IDomainAttribute> toDeleteFromX = new LinkedList<IDomainAttribute>();
-		// for (IDomainAttribute dom : x.getDomain())
-		// {
-		// for (IterationStatus stat : status)
-		// {
-		// stat.setPos(0);
-		// }
-		// boolean delete = true;
-		// while (true)
-		// {
-		// Map<String, Integer> varAssign = new HashMap<String, Integer>();
-		// varAssign.put(x.getVarInCNET().getName(), dom.getNumericalRepresentation());
-		// boolean inc = false;
-		// for (IterationStatus stat : status)
-		// {
-		// varAssign.put(stat.getVi().getVarInCNET().getName(), stat.getVi().getDomain().get(stat.getPos())
-		// .getNumericalRepresentation());
-		// if (!inc && stat.getPos() + 1 != stat.getLength())
-		// {
-		// stat.setPos(stat.getPos() + 1);
-		// inc = true;
-		// } else if (stat.getPos() + 1 != stat.getLength())
-		// {
-		// stat.setPos(0);
-		// }
-		// }
-		// for (Entry<String, Integer> set : varAssign.entrySet())
-		// {
-		// // System.out.println(set.getKey() + ": " + set.getValue());
-		// }
-		//
-		// if (consInCNET.eval(varAssign))
-		// {
-		// delete = false;
-		// break;
-		// }
-		// if (!inc)
-		// {
-		// break;
-		// }
-		// }
-		// if (delete)
-		// {
-		// toDeleteFromX.add(dom);
-		// }
-		// }
-		// x.getDomain().removeAll(toDeleteFromX);
-		// if (x.getDomain().size() == 0)
-		// {
-		// System.out.println("Stop");
-		// }
-		// return !(toDeleteFromX.size() == 0);
 		List<VI> neighbours = new ArrayList<VI>();
 		for (VI vi : vis)
 		{
@@ -191,7 +123,7 @@ public class CI
 	}
 	
 	
-	private static int[][] createCombinations(VI X, List<VI> neighbors)
+	protected static int[][] createCombinations(VI X, List<VI> neighbors)
 	{
 		int total_size = 1;
 		for (int i = 0; i < neighbors.size(); i++)

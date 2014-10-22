@@ -17,8 +17,7 @@ public class NashornScriptEngine
 {
 	private static NashornScriptEngine	instance;
 	private final ScriptEngine				engine;
-	
-	private static boolean					HACK	= false;
+	private EEvaluationType					evalType	= EEvaluationType.NASHORN;
 	
 	
 	private NashornScriptEngine()
@@ -50,32 +49,103 @@ public class NashornScriptEngine
 	
 	public boolean eval(Map<String, Integer> variableAssignments, String canonicalFormulation)
 	{
-		if (HACK)
+		switch (evalType)
 		{
-			List<Integer> elem = new ArrayList<Integer>();
-			for (Integer i : variableAssignments.values())
-			{
-				elem.add(i);
-			}
-			return !elem.get(0).equals(elem.get(1));
-		} else
-		{
-			setGlobalVariables(variableAssignments);
-			try
-			{
-				return (boolean) engine.eval(canonicalFormulation);
-			} catch (ClassCastException e)
-			{
-				System.out.println("The constraint '" + canonicalFormulation
-						+ "' cannot be parsed. It did not returned a boolean! \n");
-				e.printStackTrace();
+			case GRAPH_COLORING_HACK:
+				// COLORING HACK
+				List<Integer> elem = new ArrayList<Integer>();
+				for (Integer i : variableAssignments.values())
+				{
+					elem.add(i);
+				}
+				return !elem.get(0).equals(elem.get(1));
+			case NONO_HACK:
+			case MAX_FLOW_HACK:
+			case MAX_FLOW_SHORTER_CONSTRAINTS_HACK:
+				
+				// FlowProblem Hack
+				System.out.println(canonicalFormulation);
+				String[] andFormulas = { canonicalFormulation };
+				if (canonicalFormulation.contains("||"))
+				{
+					System.out.println("split");
+					andFormulas = canonicalFormulation.split(" \\|\\| ");
+				}
+				for (String andFormula : andFormulas)
+				{
+					andFormula = andFormula.replaceAll("\\(", "");
+					andFormula = andFormula.replaceAll("\\)", "");
+					System.out.println(andFormula);
+					String[] comparisons = { andFormula };
+					if (andFormula.contains(" && "))
+					{
+						comparisons = andFormula.split(" && ");
+					}
+					boolean comparisonCorrect = true;
+					for (String comparison : comparisons)
+					{
+						System.out.println(comparison);
+						String[] variables = comparison.split(" == ");
+						if (evalType == EEvaluationType.NONO_HACK)
+						{
+							if (!variableAssignments.get(variables[0]).equals(variables[1]))
+							{
+								comparisonCorrect = false;
+							}
+						} else
+						{
+							if (!variableAssignments.get(variables[0]).equals(variableAssignments.get(variables[1])))
+							{
+								comparisonCorrect = false;
+							}
+						}
+					}
+					if (comparisonCorrect)
+					{
+						System.out.println("true");
+						return true;
+					}
+				}
 				return false;
-			} catch (ScriptException e)
-			{
-				System.out.println("The constraint '" + canonicalFormulation + "' cannot be parsed. \n");
-				e.printStackTrace();
+			case NASHORN:
+				setGlobalVariables(variableAssignments);
+				try
+				{
+					return (boolean) engine.eval(canonicalFormulation);
+				} catch (ClassCastException e)
+				{
+					System.out.println("The constraint '" + canonicalFormulation
+							+ "' cannot be parsed. It did not returned a boolean! \n");
+					e.printStackTrace();
+					return false;
+				} catch (ScriptException e)
+				{
+					System.out.println("The constraint '" + canonicalFormulation + "' cannot be parsed. \n");
+					e.printStackTrace();
+					return false;
+				}
+			default:
 				return false;
-			}
 		}
 	}
+	
+	
+	/**
+	 * @return the evalType
+	 */
+	public EEvaluationType getEvalType()
+	{
+		return evalType;
+	}
+	
+	
+	/**
+	 * @param evalType the evalType to set
+	 */
+	public void setEvalType(EEvaluationType evalType)
+	{
+		this.evalType = evalType;
+	}
+	
+	
 }
