@@ -84,8 +84,9 @@ public class NashornScriptEngine
 					boolean comparisonCorrect = true;
 					for (String comparison : comparisons)
 					{
-						System.out.println(comparison);
-						String[] variables = comparison.split(" == ");
+						String[] variables = comparison.split("==");
+						variables[0] = variables[0].replaceAll(" ", "");
+						variables[1] = variables[1].replaceAll(" ", "");
 						if (evalType == EEvaluationType.NONO_HACK)
 						{
 							if (!variableAssignments.get(variables[0]).equals(variables[1]))
@@ -102,7 +103,6 @@ public class NashornScriptEngine
 					}
 					if (comparisonCorrect)
 					{
-						System.out.println("true");
 						return true;
 					}
 				}
