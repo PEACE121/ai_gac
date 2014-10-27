@@ -64,18 +64,15 @@ public class NashornScriptEngine
 			case MAX_FLOW_SHORTER_CONSTRAINTS_HACK:
 				
 				// FlowProblem Hack
-				System.out.println(canonicalFormulation);
 				String[] andFormulas = { canonicalFormulation };
 				if (canonicalFormulation.contains("||"))
 				{
-					System.out.println("split");
 					andFormulas = canonicalFormulation.split(" \\|\\| ");
 				}
 				for (String andFormula : andFormulas)
 				{
 					andFormula = andFormula.replaceAll("\\(", "");
 					andFormula = andFormula.replaceAll("\\)", "");
-					System.out.println(andFormula);
 					String[] comparisons = { andFormula };
 					if (andFormula.contains(" && "))
 					{
