@@ -174,6 +174,9 @@ public class AStarAdapter implements IAreaOfApplication
 			
 			// approach: for each variable: follow each constraint it belongs to, count the domains of the other variables
 			// in this constraint (c1) or count the already reduced amount of domains (c2)
+			// (c3) is an extension of (c2) to deal with single variable constraints: if an variable is part of a
+			// constraint which contains only this variable, give
+			// prior to this variable
 			for (VI vi : gacState.getVis().values())
 			{
 				if (vi.getDomain().size() > 1)
@@ -194,18 +197,24 @@ public class AStarAdapter implements IAreaOfApplication
 									if (chooseNextComplex.equals(ENextVariable.COMPLEX1))
 									{
 										degreeLocal += relatedVi.getDomain().size() - 1;
-									} else
+									} else if (chooseNextComplex.equals(ENextVariable.COMPLEX2))
 									{
 										degreeLocal += relatedVi.getVarInCNET().getFullDomainCopy().size()
 												- relatedVi.getDomain().size();
 									}
 								}
 							}
+							if (ci.getConsInCNET().getVariables().size() == 1)
+							{
+								if (vi.getDomain().contains(vi.getVarInCNET()))
+									degreeLocal += 1000;
+							}
 						}
 					}
 					// take minimum for degree of freedom and maximum for degree of reduced
 					if ((chooseNextComplex.equals(ENextVariable.COMPLEX1) && degreeLocal < minDegreeOfFreedom)
-							|| (chooseNextComplex.equals(ENextVariable.COMPLEX2) && degreeLocal > maxDegreeOfReduced))
+							|| ((chooseNextComplex.equals(ENextVariable.COMPLEX2) || chooseNextComplex
+									.equals(ENextVariable.COMPLEX2)) && degreeLocal > maxDegreeOfReduced))
 					{
 						minDegreeOfFreedom = degreeLocal;
 						maxDegreeOfReduced = degreeLocal;
@@ -219,7 +228,6 @@ public class AStarAdapter implements IAreaOfApplication
 		{
 			return successors;
 		}
-		System.out.println(nextVariable.getVarInCNET().getName());
 		lastFocal = nextVariable;
 		
 		return generateSuccesorsOfVI(nextVariable, gacState);
@@ -301,8 +309,8 @@ public class AStarAdapter implements IAreaOfApplication
 					return -1;
 				}
 			}
-			System.out.println("Variables with an empty domain: 0");
-			System.out.println("Unsatisfied constraints: 0");
+			// System.out.println("Variables with an empty domain: 0");
+			// System.out.println("Unsatisfied constraints: 0");
 			return 1;
 		}
 		return 0;

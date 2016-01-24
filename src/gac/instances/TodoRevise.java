@@ -1,7 +1,6 @@
 package gac.instances;
 
 
-
 public class TodoRevise
 {
 	private final CI	ci;
@@ -35,6 +34,16 @@ public class TodoRevise
 	public VI getVi()
 	{
 		return vi;
+	}
+	
+	
+	@Override
+	public boolean equals(Object obj)
+	{
+		TodoRevise todoRevise = (TodoRevise) obj;
+		return ci.getConsInCNET().getCanonicalFormulation()
+				.equals(todoRevise.getCi().getConsInCNET().getCanonicalFormulation())
+				&& vi.getVarInCNET().getName().equals(todoRevise.getVi().getVarInCNET().getName());
 	}
 	
 	

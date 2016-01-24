@@ -50,6 +50,13 @@ public class GACAlgorithm
 			VI x = todoRevise.getVi();
 			if (domainReduced)
 			{
+				for (VI vi : state.getVis().values())
+				{
+					if (x.getVarInCNET().getName().equals(vi.getVarInCNET().getName()))
+					{
+						vi.setDomain(x.getDomain());
+					}
+				}
 				inform(state);
 				for (CI ci : state.getCis())
 				{
@@ -61,8 +68,12 @@ public class GACAlgorithm
 							// take all variable instances except x
 							if (!vi.equals(x))
 							{
+								TodoRevise tr = new TodoRevise(ci, vi);
 								// and push them as TodoRevise onto the queue
-								queue.add(new TodoRevise(ci, vi));
+								if (!queue.contains(tr))
+								{
+									queue.add(tr);
+								}
 							}
 						}
 					}

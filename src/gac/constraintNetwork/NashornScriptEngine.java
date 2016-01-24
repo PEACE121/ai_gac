@@ -17,7 +17,7 @@ public class NashornScriptEngine
 {
 	private static NashornScriptEngine	instance;
 	private final ScriptEngine				engine;
-	private EEvaluationType					evalType	= EEvaluationType.NASHORN;
+	private EEvaluationType					evalType	= EEvaluationType.NONO_HACK;
 	
 	
 	private NashornScriptEngine()
@@ -44,6 +44,12 @@ public class NashornScriptEngine
 			bindings.put(variable.getKey(), variable.getValue());
 		}
 		engine.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
+	}
+	
+	
+	private static boolean isNumeric(String str)
+	{
+		return str.matches("-?\\d+(\\.\\d+)?"); // match a number with optional '-' and decimal.
 	}
 	
 	
@@ -81,21 +87,56 @@ public class NashornScriptEngine
 					boolean comparisonCorrect = true;
 					for (String comparison : comparisons)
 					{
-						String[] variables = comparison.split("==");
-						variables[0] = variables[0].replaceAll(" ", "");
-						variables[1] = variables[1].replaceAll(" ", "");
-						if (evalType == EEvaluationType.NONO_HACK)
+						boolean reverse = false;
+						if (comparison.substring(0, 1).equals("!"))
 						{
-							if (!variableAssignments.get(variables[0]).equals(variables[1]))
+							reverse = true;
+							comparison = comparison.substring(1);
+						}
+						String[] variables;
+						if (comparison.contains("!="))
+						{
+							variables = comparison.split("!=");
+							variables[0] = variables[0].replaceAll(" ", "");
+							variables[1] = variables[1].replaceAll(" ", "");
+							if (isNumeric(variables[1]))
 							{
-								comparisonCorrect = false;
+								if ((variableAssignments.get(variables[0]) + "").equals(variables[1]))
+								{
+									comparisonCorrect = false;
+								}
+							} else
+							{
+								if (variableAssignments.get(variables[0] + "").equals(variableAssignments.get(variables[1])))
+								{
+									comparisonCorrect = false;
+								}
 							}
 						} else
 						{
-							if (!variableAssignments.get(variables[0]).equals(variableAssignments.get(variables[1])))
+							variables = comparison.split("==");
+							
+							variables[0] = variables[0].replaceAll(" ", "");
+							variables[1] = variables[1].replaceAll(" ", "");
+							if (isNumeric(variables[1]))
 							{
-								comparisonCorrect = false;
+								if (!variableAssignments.get(variables[0] + "").equals(variables[1]))
+								{
+									comparisonCorrect = false;
+								}
+							} else
+							{
+								if (!variableAssignments.get(variables[0] + "").equals(
+										variableAssignments.get(variables[1] + "")))
+								{
+									comparisonCorrect = false;
+								}
 							}
+						}
+						
+						if (reverse)
+						{
+							comparisonCorrect = !comparisonCorrect;
 						}
 					}
 					if (comparisonCorrect)

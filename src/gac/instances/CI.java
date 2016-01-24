@@ -70,10 +70,6 @@ public class CI
 			toDeleteFromX.add(dom);
 		}
 		x.getDomain().removeAll(toDeleteFromX);
-		// if (x.getDomain().size() == 0)
-		// {
-		// System.out.println("Stop");
-		// }
 		return !(toDeleteFromX.size() == 0);
 	}
 	

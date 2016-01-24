@@ -5,5 +5,5 @@ public enum ENextVariable
 	SIMPLE,
 	COMPLEX1,
 	COMPLEX2,
-	COMPLEX4
+	COMPLEX4,
 }
